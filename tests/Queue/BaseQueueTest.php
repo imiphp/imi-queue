@@ -1,17 +1,12 @@
 <?php
-namespace Imi\Queue\Test;
+namespace Imi\Queue\Test\Queue;
 
-use Imi\App;
 use Imi\Queue\Model\Message;
 use Imi\Queue\Driver\IQueueDriver;
-use Imi\Queue\Driver\RedisQueueDriver;
 
-class QueueTest extends BaseTest
+abstract class BaseQueueTest extends BaseTest
 {
-    protected function getDriver(): IQueueDriver
-    {
-        return App::getBean(RedisQueueDriver::class, 'imi-queue-test');
-    }
+    protected abstract function getDriver(): IQueueDriver;
 
     public function testPush()
     {
