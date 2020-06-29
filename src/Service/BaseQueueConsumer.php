@@ -1,6 +1,7 @@
 <?php
 namespace Imi\Queue\Service;
 
+use Imi\Event\Event;
 use Swoole\Coroutine;
 use Imi\Aop\Annotation\Inject;
 use Yurun\Swoole\CoPool\CoPool;
@@ -8,6 +9,10 @@ use Imi\Queue\Contract\IMessage;
 use Imi\Queue\Driver\IQueueDriver;
 use Yurun\Swoole\CoPool\Interfaces\ICoTask;
 use Yurun\Swoole\CoPool\Interfaces\ITaskParam;
+use Imi\Queue\Event\Param\ConsumerAfterPopParam;
+use Imi\Queue\Event\Param\ConsumerBeforePopParam;
+use Imi\Queue\Event\Param\ConsumerAfterConsumeParam;
+use Imi\Queue\Event\Param\ConsumerBeforeConsumeParam;
 
 /**
  * 队列消费基类
@@ -64,14 +69,28 @@ abstract class BaseQueueConsumer
         $task = function() use($config){
             $queue = $this->imiQueue->getQueue($this->name);
             do {
+                Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_POP', [
+                    'queue' =>  $queue,
+                ], $this, ConsumerBeforePopParam::class);
                 $message = $queue->pop();
+                Event::trigger('IMI.QUEUE.CONSUMER.AFTER_POP', [
+                    'queue'     =>  $queue,
+                    'message'   =>  $message,
+                ], $this, ConsumerAfterPopParam::class);
                 if(null === $message)
                 {
                     Coroutine::sleep($config->getTimespan());
                 }
                 else
                 {
+                    Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_CONSUME', [
+                        'queue' =>  $queue,
+                    ], $this, ConsumerBeforeConsumeParam::class);
                     $this->consume($message, $queue);
+                    Event::trigger('IMI.QUEUE.CONSUMER.AFTER_CONSUME', [
+                        'queue'     =>  $queue,
+                        'message'   =>  $message,
+                    ], $this, ConsumerAfterConsumeParam::class);
                 }
             } while($this->working);  
         };
