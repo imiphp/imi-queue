@@ -85,6 +85,7 @@ abstract class BaseQueueConsumer
                 {
                     Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_CONSUME', [
                         'queue' =>  $queue,
+                        'message'   =>  $message,
                     ], $this, ConsumerBeforeConsumeParam::class);
                     $this->consume($message, $queue);
                     Event::trigger('IMI.QUEUE.CONSUMER.AFTER_CONSUME', [

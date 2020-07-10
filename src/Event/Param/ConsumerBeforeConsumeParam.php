@@ -15,4 +15,11 @@ class ConsumerBeforeConsumeParam extends EventParam
      */
     public $queue;
 
+    /**
+     * 消息
+     *
+     * @var \Imi\Queue\Contract\IMessage
+     */
+    public $message;
+
 }
