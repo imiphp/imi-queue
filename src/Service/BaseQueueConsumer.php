@@ -118,7 +118,7 @@ abstract class BaseQueueConsumer
             $pool->run();
             for($i = 0; $i < $co; ++$i)
             {
-                $pool->addTask([
+                $pool->addTaskAsync([
                     'task'  =>  $task,
                 ]);
             }
