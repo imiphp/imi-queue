@@ -297,6 +297,8 @@ LUA
         $result = $redis->evalEx(<<<LUA
 -- 从工作队列删除
 redis.call('zrem', KEYS[1], ARGV[1])
+-- 从超时队列删除
+redis.call('del', KEYS[3])
 -- 删除消息
 redis.call('del', KEYS[2] .. ARGV[1])
 return true
@@ -304,8 +306,9 @@ LUA
         , [
             $this->getQueueKey(QueueType::WORKING),
             $this->getMessageKeyPrefix(),
+            $this->getQueueKey(QueueType::TIMEOUT),
             $message->getMessageId(),
-        ], 2);
+        ], 3);
 
         if(false === $result)
         {
