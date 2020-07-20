@@ -4,6 +4,7 @@ namespace Imi\Queue\Service;
 use Imi\Event\Event;
 use Swoole\Coroutine;
 use Imi\Aop\Annotation\Inject;
+use Imi\App;
 use Yurun\Swoole\CoPool\CoPool;
 use Imi\Queue\Contract\IMessage;
 use Imi\Queue\Driver\IQueueDriver;
@@ -106,7 +107,11 @@ abstract class BaseQueueConsumer
                  */
                 public function run(ITaskParam $param)
                 {
-                    ($param->getData()['task'])();
+                    try {
+                        ($param->getData()['task'])();
+                    } catch(\Throwable $th) {
+                        App::getBean('ErrorLog')->onException($th);
+                    }
                 }
     
             });
