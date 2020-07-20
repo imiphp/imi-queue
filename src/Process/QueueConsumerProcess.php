@@ -54,18 +54,22 @@ class QueueConsumerProcess extends BaseProcess
             $processPool = new \Imi\Process\Pool($options['process']);
             $configs = $options['configs'];
             $processPool->on('WorkerStart', function(\Imi\Process\Pool\WorkerEventParam $e) use($group, $configs){
-                Imi::setProcessName('process', [
-                    'processName'   =>  'QueueConsumer-' . $group,
-                ]);
-                /** @var \Imi\Queue\Model\QueueConfig[] $configs */
-                foreach($configs as $config)
-                {
-                    Coroutine::create(function() use($config){
-                        /** @var \Imi\Queue\Service\BaseQueueConsumer $queueConsumer */
-                        $this->consumers[] = $queueConsumer = App::getBean($config->getConsumer(), $config->getName());
-                        $queueConsumer->start();
-                    });
-                }
+                go(function() use($group, $configs){
+                    \Swoole\Runtime::enableCoroutine(true);
+                    App::initWorker();
+                    Imi::setProcessName('process', [
+                        'processName'   =>  'QueueConsumer-' . $group,
+                    ]);
+                    /** @var \Imi\Queue\Model\QueueConfig[] $configs */
+                    foreach($configs as $config)
+                    {
+                        Coroutine::create(function() use($config){
+                            /** @var \Imi\Queue\Service\BaseQueueConsumer $queueConsumer */
+                            $this->consumers[] = $queueConsumer = App::getBean($config->getConsumer(), $config->getName());
+                            $queueConsumer->start();
+                        });
+                    }
+                });
             });
             // 工作进程退出事件-可选
             $processPool->on('WorkerExit', function(\Imi\Process\Pool\WorkerEventParam $e){
