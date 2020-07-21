@@ -122,10 +122,7 @@ abstract class BaseQueueConsumer
                     'task'  =>  $task,
                 ]);
             }
-            while($pool->isRunning())
-            {
-                Coroutine::sleep(0.1);
-            }
+            $pool->wait();
         }
         else
         {
