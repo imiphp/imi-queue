@@ -61,9 +61,10 @@ interface IQueueDriver
      * 将消息标记为失败
      *
      * @param \Imi\Queue\Contract\IMessage $message
+     * @param bool $requeue
      * @return void
      */
-    public function fail(IMessage $message);
+    public function fail(IMessage $message, bool $requeue = false);
 
     /**
      * 获取队列状态

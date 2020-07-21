@@ -328,21 +328,35 @@ LUA
      * 将消息标记为失败
      *
      * @param \Imi\Queue\Contract\IMessage $message
+     * @param bool $requeue
      * @return void
      */
-    public function fail(IMessage $message)
+    public function fail(IMessage $message, bool $requeue = false)
     {
         $redis = RedisManager::getInstance($this->poolName);
+        if($requeue)
+        {
+            $operation = <<<LUA
+-- 加入队列
+redis.call('rpush', KEYS[2], ARGV[1]);
+LUA;
+        }
+        else
+        {
+            $operation = <<<LUA
+-- 加入失败队列
+redis.call('rpush', KEYS[2], ARGV[1])
+LUA;
+        }
         $result = $redis->evalEx(<<<LUA
 -- 从工作队列删除
 redis.call('zrem', KEYS[1], ARGV[1])
--- 加入失败队列
-redis.call('rpush', KEYS[2], ARGV[1])
+{$operation}
 return true
 LUA
         , [
             $this->getQueueKey(QueueType::WORKING),
-            $this->getQueueKey(QueueType::FAIL),
+            $requeue ? $this->getQueueKey(QueueType::READY) : $this->getQueueKey(QueueType::FAIL),
             $message->getMessageId(),
         ], 2);
 

@@ -81,9 +81,18 @@ abstract class BaseQueueTest extends BaseTest
         $message = $this->getDriver()->pop();
         $this->assertNotEmpty($message->getMessageId());
 
-        $driver->fail($message, 'gg');
+        $driver->fail($message);
 
         $this->assertEquals(1, $driver->restoreFailMessages());
+        
+        // requeue
+        $message = $this->getDriver()->pop();
+        $this->assertNotEmpty($message->getMessageId());
+
+        $driver->fail($message, true);
+
+        $this->assertEquals(1, $driver->status()->getReady());
+        $this->assertEquals(0, $driver->restoreFailMessages());
     }
 
     public function testRestoreTimeoutMessages()

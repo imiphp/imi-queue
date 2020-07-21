@@ -147,6 +147,9 @@ if(null !== $message)
 
     // 将消息标记为失败
     $queue->fail($message);
+
+    // 将消息标记为失败，并重回队列
+    $queue->fail($message, true);
 }
 ```
 
