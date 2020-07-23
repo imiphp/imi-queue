@@ -184,13 +184,14 @@ local score = tonumber(message.workingTimeout)
 if nil == score or score <= 0 then
     score = -1
 end
-redis.call('zadd', KEYS[2], score, messageId)
+redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
 return hashResult
 LUA
         , [
             $this->getQueueKey(QueueType::READY),
             $this->getQueueKey(QueueType::WORKING),
             $this->getMessageKeyPrefix(),
+            microtime(true),
         ], 3);
 
         if(-1 === $result)
