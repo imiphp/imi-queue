@@ -3,6 +3,7 @@ namespace Imi\Queue\Test\Queue;
 
 use Imi\Queue\Model\Message;
 use Imi\Queue\Driver\IQueueDriver;
+use Swoole\Coroutine\Channel;
 
 abstract class BaseQueueTest extends BaseTest
 {
@@ -16,15 +17,36 @@ abstract class BaseQueueTest extends BaseTest
         $message->setMessage('a');
         $messageId = $driver->push($message);
         $this->assertNotEmpty($messageId);
-
-        $message->setMessage('b');
-        $messageId = $driver->push($message, 3600);
-        $this->assertNotEmpty($messageId);
     }
 
     public function testPop()
     {
         $message = $this->getDriver()->pop();
+        $this->assertInstanceOf(\Imi\Queue\Contract\IMessage::class, $message);
+        $this->assertNotEmpty($message->getMessageId());
+    }
+
+    public function testPushDelay()
+    {
+        $driver = $this->getDriver();
+        $driver->clear();
+        $message = new Message;
+        $message->setMessage('b');
+        $messageId = $driver->push($message, 3);
+        $this->assertNotEmpty($messageId);
+
+        $time = microtime(true);
+        for($i = 0; $i < 3; ++$i)
+        {
+            sleep(1);
+            $message = $driver->pop();
+            if(null !== $message)
+            {
+                break;
+            }
+        }
+        $this->assertEquals(3, (int)(microtime(true) - $time));
+        $this->assertInstanceOf(\Imi\Queue\Contract\IMessage::class, $message);
         $this->assertNotEmpty($message->getMessageId());
     }
 
