@@ -68,7 +68,7 @@ return [
             // 队列名称
             'test1' =>  [
                 // 使用的队列驱动
-                'driver'        =>  \Imi\Queue\Driver\RedisQueueDriver::class,
+                'driver'        =>  'RedisQueueDriver',
                 // 消费协程数量
                 'co'            =>  1,
                 // 消费进程数量；可能会受进程分组影响，以同一组中配置的最多进程数量为准
@@ -88,7 +88,7 @@ return [
                 ]
             ],
             'test2' =>  [
-                'driver'        =>  \Imi\Queue\Driver\RedisQueueDriver::class,
+                'driver'        =>  'RedisQueueDriver',
                 'co'            =>  1,
                 'process'       =>  1,
                 'timespan'      =>  0.1,

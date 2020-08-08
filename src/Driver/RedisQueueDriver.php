@@ -2,15 +2,18 @@
 namespace Imi\Queue\Driver;
 
 use Imi\Redis\RedisManager;
+use Imi\Queue\Model\Message;
+use Imi\Bean\Annotation\Bean;
 use Imi\Queue\Enum\QueueType;
 use Imi\Queue\Contract\IMessage;
 use Imi\Queue\Model\QueueStatus;
 use Imi\Util\Traits\TDataToProperty;
 use Imi\Queue\Exception\QueueException;
-use Imi\Queue\Model\Message;
 
 /**
  * Redis 队列驱动
+ * 
+ * @Bean("RedisQueueDriver")
  */
 class RedisQueueDriver implements IQueueDriver
 {

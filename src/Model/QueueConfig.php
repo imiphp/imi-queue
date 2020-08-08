@@ -1,8 +1,6 @@
 <?php
 namespace Imi\Queue\Model;
 
-use Imi\Queue\Driver\RedisQueueDriver;
-
 class QueueConfig
 {
     /**
@@ -17,7 +15,7 @@ class QueueConfig
      *
      * @var string
      */
-    private $driver = RedisQueueDriver::class;
+    private $driver = 'RedisQueueDriver';
 
     /**
      * 消费协程数量

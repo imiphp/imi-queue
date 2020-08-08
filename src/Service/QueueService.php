@@ -5,7 +5,6 @@ use Imi\Bean\BeanFactory;
 use Imi\Bean\Annotation\Bean;
 use Imi\Queue\Model\QueueConfig;
 use Imi\Queue\Driver\IQueueDriver;
-use Imi\Queue\Driver\RedisQueueDriver;
 use Imi\Queue\Exception\QueueException;
 
 /**

@@ -1,20 +1,27 @@
 language: php
 os: linux
+dist: bionic
 
 jobs:
   include:
+  - php: '7.1'
+    env: SWOOLE_VERSION="v4.5.2"
   - php: '7.2'
     env: SWOOLE_VERSION="v4.5.2"
   - php: '7.3'
     env: SWOOLE_VERSION="v4.5.2"
   - php: '7.4'
     env: SWOOLE_VERSION="v4.5.2"
+  - php: '7.1'
+    env: SWOOLE_VERSION="v4.4.19"
   - php: '7.2'
     env: SWOOLE_VERSION="v4.4.19"
   - php: '7.3'
     env: SWOOLE_VERSION="v4.4.19"
   - php: '7.4'
     env: SWOOLE_VERSION="v4.4.19"
+  - php: '7.1'
+    env: SWOOLE_VERSION="master"
   - php: '7.2'
     env: SWOOLE_VERSION="master"
   - php: '7.3'

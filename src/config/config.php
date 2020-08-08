@@ -1,6 +1,7 @@
 <?php
 return [
     'beanScan'  =>  [
+        'Imi\Queue\Driver',
         'Imi\Queue\Enum',
         'Imi\Queue\Service',
         'Imi\Queue\Annotation',
