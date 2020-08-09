@@ -4,6 +4,8 @@ dist: bionic
 
 jobs:
   include:
+  - php: '7.4'
+    env: SWOOLE_VERSION="v4.5.3-beta"
   - php: '7.1'
     env: SWOOLE_VERSION="v4.5.2"
   - php: '7.2'
@@ -43,6 +45,7 @@ addons:
     - unzip
 
 install:
+  - dd if=/dev/zero of=swap bs=1024 count=2048000 && chmod 600 swap && sudo mkswap swap && sudo swapon swap;
   - if [[ $INSTALL_REDIS_EXT == true ]]; then
       wget https://github.com/phpredis/phpredis/archive/develop.zip;
       unzip develop.zip;
