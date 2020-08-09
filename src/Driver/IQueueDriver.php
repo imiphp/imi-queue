@@ -29,9 +29,10 @@ interface IQueueDriver
     /**
      * 从队列弹出一个消息
      *
+     * @param float $timeout
      * @return \Imi\Queue\Contract\IMessage|null
      */
-    public function pop(): ?IMessage;
+    public function pop(float $timeout = 0): ?IMessage;
 
     /**
      * 删除一个消息

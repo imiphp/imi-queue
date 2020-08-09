@@ -63,7 +63,7 @@
                     'co'            =>  1,
                     // 消费进程数量；可能会受进程分组影响，以同一组中配置的最多进程数量为准
                     'process'       =>  1,
-                    // 消费循环尝试 pop 的时间间隔，单位：秒
+                    // 消费循环尝试 pop 的时间间隔，单位：秒（仅使用消费者类时有效）
                     'timespan'      =>  0.1,
                     // 进程分组名称
                     'processGroup'  =>  'a',
@@ -73,8 +73,12 @@
                     'consumer'      =>  'AConsumer',
                     // 驱动类所需要的参数数组
                     'config'        =>  [
+                        // redis 连接池明
                         'poolName'  =>  'redis',
+                        // redis 键前缀
                         'prefix'    =>  'imi:queue:test:',
+                        // 消费循环尝试 pop 的时间间隔，单位：秒（手动调用pop()方法有效）
+                        'timespan'  =>  0.1,
                     ]
                 ],
             ],

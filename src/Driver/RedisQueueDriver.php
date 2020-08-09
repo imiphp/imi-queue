@@ -41,6 +41,13 @@ class RedisQueueDriver implements IQueueDriver
      */
     protected $name;
 
+    /**
+     * 循环尝试 pop 的时间间隔，单位：秒
+     * 
+     * @var float
+     */
+    protected $timespan = 0.03;
+
     public function __construct(string $name, array $config = [])
     {
         $this->name = $name;
@@ -162,65 +169,87 @@ LUA
 
     /**
      * 从队列弹出一个消息
-     *
+     * 
+     * @param float $timeout 超时时间，单位：秒。值是-1时立即返回结果
      * @return \Imi\Queue\Contract\IMessage|null
      */
-    public function pop(): ?IMessage
+    public function pop(float $timeout = -1): ?IMessage
     {
-        $this->parseDelayMessages();
-        $this->parseTimeoutMessages();
-        $redis = RedisManager::getInstance($this->poolName);
-        $result = $redis->evalEx(<<<LUA
--- 从列表弹出
-local messageId = redis.call('lpop', KEYS[1])
-if false == messageId then
-    return -1
-end
--- 获取消息内容
-local hashResult = redis.call('hgetall', KEYS[3] .. messageId)
-local message = {}
-for i=1,#hashResult,2 do
-    message[hashResult[i]] = hashResult[i + 1]
-end
--- 加入工作队列
-local score = tonumber(message.workingTimeout)
-if nil == score or score <= 0 then
-    score = -1
-end
-redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
-return hashResult
-LUA
-        , [
-            $this->getQueueKey(QueueType::READY),
-            $this->getQueueKey(QueueType::WORKING),
-            $this->getMessageKeyPrefix(),
-            microtime(true),
-        ], 3);
-
-        if(-1 === $result)
-        {
-            return null;
-        }
-        if(false === $result)
-        {
-            if('' === ($error = $redis->getLastError()))
+        $time = $useTime = 0;
+        do {
+            if($timeout > 0)
             {
-                throw new QueueException('Queue pop failed');
+                if($time)
+                {
+                    $leftTime = $timeout - $useTime;
+                    if($leftTime > $this->timespan)
+                    {
+                        usleep($this->timespan * 1000000);
+                    }
+                }
+                else
+                {
+                    $time = microtime(true);
+                }
             }
-            else
+            $this->parseDelayMessages();
+            $this->parseTimeoutMessages();
+            $redis = RedisManager::getInstance($this->poolName);
+            $result = $redis->evalEx(<<<LUA
+    -- 从列表弹出
+    local messageId = redis.call('lpop', KEYS[1])
+    if false == messageId then
+        return -1
+    end
+    -- 获取消息内容
+    local hashResult = redis.call('hgetall', KEYS[3] .. messageId)
+    local message = {}
+    for i=1,#hashResult,2 do
+        message[hashResult[i]] = hashResult[i + 1]
+    end
+    -- 加入工作队列
+    local score = tonumber(message.workingTimeout)
+    if nil == score or score <= 0 then
+        score = -1
+    end
+    redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
+    return hashResult
+    LUA
+            , [
+                $this->getQueueKey(QueueType::READY),
+                $this->getQueueKey(QueueType::WORKING),
+                $this->getMessageKeyPrefix(),
+                microtime(true),
+            ], 3);
+            if($result > 0)
             {
-                throw new QueueException('Queue pop failed, ' . $error);
+                $data = [];
+                $length = count($result);
+                for($i = 0; $i < $length; $i += 2)
+                {
+                    $data[$result[$i]] = $result[$i + 1];
+                }
+                $message = new Message;
+                $message->loadFromArray($data);
+                return $message;
             }
-        }
-        $data = [];
-        $length = count($result);
-        for($i = 0; $i < $length; $i += 2)
-        {
-            $data[$result[$i]] = $result[$i + 1];
-        }
-        $message = new Message;
-        $message->loadFromArray($data);
-        return $message;
+            if(false === $result)
+            {
+                if('' === ($error = $redis->getLastError()))
+                {
+                    throw new QueueException('Queue pop failed');
+                }
+                else
+                {
+                    throw new QueueException('Queue pop failed, ' . $error);
+                }
+            }
+            if($timeout < 0)
+            {
+                return null;
+            }
+        } while(($useTime = (microtime(true) - $time)) < $timeout);
+        return null;
     }
 
     /**
