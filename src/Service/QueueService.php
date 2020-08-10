@@ -1,6 +1,7 @@
 <?php
 namespace Imi\Queue\Service;
 
+use Imi\App;
 use Imi\Bean\BeanFactory;
 use Imi\Bean\Annotation\Bean;
 use Imi\Queue\Model\QueueConfig;
@@ -113,7 +114,7 @@ class QueueService
         {
             return $queueInstances[$name];
         }
-        return $queueInstances[$name] = BeanFactory::newInstance($config->getDriver(), $name, $config->getConfig());
+        return $queueInstances[$name] = App::getBean($config->getDriver(), $name, $config->getConfig());
     }
 
 }

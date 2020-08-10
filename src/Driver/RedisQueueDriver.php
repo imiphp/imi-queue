@@ -155,7 +155,7 @@ LUA
         }
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue push failed');
             }
@@ -235,7 +235,7 @@ LUA
             }
             if(false === $result)
             {
-                if('' === ($error = $redis->getLastError()))
+                if('' == ($error = $redis->getLastError()))
                 {
                     throw new QueueException('Queue pop failed');
                 }
@@ -282,7 +282,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue delete failed');
             }
@@ -345,7 +345,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue success failed');
             }
@@ -395,7 +395,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue success failed');
             }
@@ -460,7 +460,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue restoreFailMessages failed');
             }
@@ -497,7 +497,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue restoreTimeoutMessages failed');
             }
@@ -542,7 +542,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue parseDelayMessages failed');
             }
@@ -572,9 +572,9 @@ local messageIdCount = table.getn(messageIds)
 if 0 == messageIdCount then
     return 0
 end
--- 加入队列
+-- 加入超时队列
 redis.call('rpush', KEYS[2], unpack(messageIds))
--- 从延时队列删除
+-- 从工作队列删除
 redis.call('zrem', KEYS[1], unpack(messageIds))
 return messageIdCount
 LUA
@@ -587,7 +587,7 @@ LUA
 
         if(false === $result)
         {
-            if('' === ($error = $redis->getLastError()))
+            if('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue parseTimeoutMessages failed');
             }
