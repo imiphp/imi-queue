@@ -196,25 +196,25 @@ LUA
             $this->parseTimeoutMessages();
             $redis = RedisManager::getInstance($this->poolName);
             $result = $redis->evalEx(<<<LUA
-    -- 从列表弹出
-    local messageId = redis.call('lpop', KEYS[1])
-    if false == messageId then
-        return -1
-    end
-    -- 获取消息内容
-    local hashResult = redis.call('hgetall', KEYS[3] .. messageId)
-    local message = {}
-    for i=1,#hashResult,2 do
-        message[hashResult[i]] = hashResult[i + 1]
-    end
-    -- 加入工作队列
-    local score = tonumber(message.workingTimeout)
-    if nil == score or score <= 0 then
-        score = -1
-    end
-    redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
-    return hashResult
-    LUA
+-- 从列表弹出
+local messageId = redis.call('lpop', KEYS[1])
+if false == messageId then
+    return -1
+end
+-- 获取消息内容
+local hashResult = redis.call('hgetall', KEYS[3] .. messageId)
+local message = {}
+for i=1,#hashResult,2 do
+    message[hashResult[i]] = hashResult[i + 1]
+end
+-- 加入工作队列
+local score = tonumber(message.workingTimeout)
+if nil == score or score <= 0 then
+    score = -1
+end
+redis.call('zadd', KEYS[2], ARGV[1] + score, messageId)
+return hashResult
+LUA
             , [
                 $this->getQueueKey(QueueType::READY),
                 $this->getQueueKey(QueueType::WORKING),
