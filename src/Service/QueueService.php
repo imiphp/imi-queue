@@ -2,7 +2,6 @@
 namespace Imi\Queue\Service;
 
 use Imi\App;
-use Imi\Bean\BeanFactory;
 use Imi\Bean\Annotation\Bean;
 use Imi\Queue\Model\QueueConfig;
 use Imi\Queue\Driver\IQueueDriver;

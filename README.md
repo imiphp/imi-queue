@@ -73,7 +73,7 @@
                     'consumer'      =>  'AConsumer',
                     // 驱动类所需要的参数数组
                     'config'        =>  [
-                        // redis 连接池明
+                        // redis 连接池名
                         'poolName'  =>  'redis',
                         // redis 键前缀
                         'prefix'    =>  'imi:queue:test:',
