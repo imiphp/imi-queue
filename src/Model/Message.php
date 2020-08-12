@@ -13,7 +13,7 @@ class Message implements IMessage
      *
      * @var string
      */
-    protected $messageId;
+    protected $messageId = '';
 
     /**
      * 已重试次数
@@ -107,17 +107,59 @@ class Message implements IMessage
     }
 
     /**
+     * 获取已重试次数
+     *
+     * @return integer
+     */
+    public function getRetryCount(): int
+    {
+        return $this->retryCount;
+    }
+
+    /**
+     * 获取重试次数
+     *
+     * @param integer $retryCount
+     * @return void
+     */
+    public function setRetryCount(int $retryCount)
+    {
+        $this->retryCount = $retryCount;
+    }
+
+    /**
+     * 获取最大重试次数
+     *
+     * @return integer
+     */
+    public function getMaxRetryCount(): int
+    {
+        return $this->maxRetryCount;
+    }
+
+    /**
+     * 获取最大重试次数
+     *
+     * @param integer $maxRetryCount
+     * @return void
+     */
+    public function setMaxRetryCount(int $maxRetryCount)
+    {
+        $this->maxRetryCount = $maxRetryCount;
+    }
+
+    /**
      * 将当前对象作为数组返回
      * @return array
      */
     public function toArray(): array
     {
         return [
-            'messageId'     =>  $this->messageId,
-            'retryCount'    =>  $this->retryCount,
-            'maxRetryCount' =>  $this->maxRetryCount,
-            'message'       =>  $this->message,
-            'workingTimeout'=>  $this->workingTimeout,
+            'messageId'     =>  $this->getMessageId(),
+            'retryCount'    =>  $this->getRetryCount(),
+            'maxRetryCount' =>  $this->getMaxRetryCount(),
+            'message'       =>  $this->getMessage(),
+            'workingTimeout'=>  $this->getWorkingTimeout(),
         ];
     }
 

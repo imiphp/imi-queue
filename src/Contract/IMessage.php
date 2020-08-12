@@ -11,7 +11,7 @@ interface IMessage extends IArrayable
     /**
      * 获取消息 ID
      *
-     * @return string
+     * @return string|null
      */
     public function getMessageId(): string;
 
@@ -28,7 +28,7 @@ interface IMessage extends IArrayable
      *
      * @return string
      */
-    public function getMessage(): string;
+    public function getMessage(): ?string;
 
     /**
      * 设置消息内容
@@ -52,6 +52,36 @@ interface IMessage extends IArrayable
      * @return void
      */
     public function setWorkingTimeout(float $workingTimeout);
+
+    /**
+     * 获取已重试次数
+     *
+     * @return integer
+     */
+    public function getRetryCount(): int;
+
+    /**
+     * 获取重试次数
+     *
+     * @param integer $retryCount
+     * @return void
+     */
+    public function setRetryCount(int $retryCount);
+
+    /**
+     * 获取最大重试次数
+     *
+     * @return integer
+     */
+    public function getMaxRetryCount(): int;
+
+    /**
+     * 获取最大重试次数
+     *
+     * @param integer $maxRetryCount
+     * @return void
+     */
+    public function setMaxRetryCount(int $maxRetryCount);
 
     /**
      * 从数组加载数据
