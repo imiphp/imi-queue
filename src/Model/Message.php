@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Imi\Queue\Model;
 
 use Imi\Queue\Contract\IMessage;
@@ -11,43 +13,31 @@ class Message implements IMessage
 {
     /**
      * 消息 ID.
-     *
-     * @var string
      */
-    protected $messageId = '';
+    protected string $messageId = '';
 
     /**
      * 已重试次数.
-     *
-     * @var int
      */
-    protected $retryCount = 0;
+    protected int $retryCount = 0;
 
     /**
      * 最大重试次数.
-     *
-     * @var int
      */
-    protected $maxRetryCount = 0;
+    protected int $maxRetryCount = 0;
 
     /**
      * 消息内容.
-     *
-     * @var string
      */
-    protected $message;
+    protected string $message;
 
     /**
      * 工作超时时间，单位：秒.
-     *
-     * @var float
      */
-    protected $workingTimeout = 0;
+    protected float $workingTimeout = 0;
 
     /**
      * 获取消息 ID.
-     *
-     * @return string
      */
     public function getMessageId(): string
     {
@@ -56,20 +46,14 @@ class Message implements IMessage
 
     /**
      * 设置消息 ID.
-     *
-     * @param string $messageId
-     *
-     * @return void
      */
-    public function setMessageId(string $messageId)
+    public function setMessageId(string $messageId): void
     {
         $this->messageId = $messageId;
     }
 
     /**
      * 获取消息内容.
-     *
-     * @return string
      */
     public function getMessage(): string
     {
@@ -78,20 +62,14 @@ class Message implements IMessage
 
     /**
      * 设置消息内容.
-     *
-     * @param string $message
-     *
-     * @return void
      */
-    public function setMessage(string $message)
+    public function setMessage(string $message): void
     {
         $this->message = $message;
     }
 
     /**
      * 获取工作超时时间，单位：秒.
-     *
-     * @return float
      */
     public function getWorkingTimeout(): float
     {
@@ -102,18 +80,14 @@ class Message implements IMessage
      * 设置工作超时时间，单位：秒.
      *
      * @param float $workingTimeout
-     *
-     * @return void
      */
-    public function setWorkingTimeout(float $workingTimeout)
+    public function setWorkingTimeout($workingTimeout): void
     {
-        $this->workingTimeout = $workingTimeout;
+        $this->workingTimeout = (float) $workingTimeout;
     }
 
     /**
      * 获取已重试次数.
-     *
-     * @return int
      */
     public function getRetryCount(): int
     {
@@ -124,18 +98,14 @@ class Message implements IMessage
      * 获取重试次数.
      *
      * @param int $retryCount
-     *
-     * @return void
      */
-    public function setRetryCount(int $retryCount)
+    public function setRetryCount($retryCount): void
     {
-        $this->retryCount = $retryCount;
+        $this->retryCount = (int) $retryCount;
     }
 
     /**
      * 获取最大重试次数.
-     *
-     * @return int
      */
     public function getMaxRetryCount(): int
     {
@@ -146,18 +116,14 @@ class Message implements IMessage
      * 获取最大重试次数.
      *
      * @param int $maxRetryCount
-     *
-     * @return void
      */
-    public function setMaxRetryCount(int $maxRetryCount)
+    public function setMaxRetryCount($maxRetryCount): void
     {
-        $this->maxRetryCount = $maxRetryCount;
+        $this->maxRetryCount = (int) $maxRetryCount;
     }
 
     /**
      * 将当前对象作为数组返回.
-     *
-     * @return array
      */
     public function toArray(): array
     {
@@ -172,16 +138,20 @@ class Message implements IMessage
 
     /**
      * 从数组加载数据.
-     *
-     * @param array $data
-     *
-     * @return void
      */
-    public function loadFromArray(array $data)
+    public function loadFromArray(array $data): void
     {
         foreach ($data as $k => $v)
         {
-            $this->$k = $v;
+            $method = 'set' . ucfirst($k);
+            if (method_exists($this, $method))
+            {
+                $this->$method($v);
+            }
+            else
+            {
+                $this->$k = $v;
+            }
         }
     }
 }

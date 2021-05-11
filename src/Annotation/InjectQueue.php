@@ -1,18 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Imi\Queue\Annotation;
 
 use Imi\Aop\Annotation\Inject;
 use Imi\App;
-use Imi\Bean\Annotation\Parser;
+use Imi\Bean\Annotation\Inherit;
 
 /**
  * 注入队列对象
  *
+ * @Inherit
  * @Annotation
  * @Target({"PROPERTY", "ANNOTATION"})
- * @Parser("Imi\Aop\Parser\AopParser")
  */
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
 class InjectQueue extends Inject
 {
     /**

@@ -1,6 +1,8 @@
 <?php
 
-use Imi\Server\Type;
+declare(strict_types=1);
+
+use Imi\Swoole\Server\Type;
 
 return [
     // 项目根命名空间
@@ -12,14 +14,15 @@ return [
     ],
 
     // 扫描目录
-    'beanScan'    => [
-        'QueueApp\Consumer',
-        'QueueApp\Listener',
-    ],
+    // 'beanScan'    => [
+    //     'QueueApp\Consumer',
+    //     'QueueApp\Listener',
+    // ],
 
     // 组件命名空间
     'components'    => [
         'Queue'  => 'Imi\Queue',
+        'Swoole' => 'Imi\Swoole',
     ],
 
     // 主服务器配置
@@ -37,10 +40,8 @@ return [
     'pools'    => [
         'redis'    => [
             'pool' => [
-                // 同步池类名
-                'syncClass'     => \Imi\Redis\SyncRedisPool::class,
                 // 协程池类名
-                'asyncClass'    => \Imi\Redis\CoroutineRedisPool::class,
+                'class'         => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
                 'config'        => [
                     // 池子中最多资源数
                     'maxResources' => 10,
@@ -92,10 +93,45 @@ return [
     // 锁
     'lock'  => [
         'list'  => [
-            'redisConnectContextLock' => [
+            'redisConnectionContextLock' => [
                 'class'     => 'RedisLock',
                 'options'   => [
                     'poolName'  => 'redis',
+                ],
+            ],
+        ],
+    ],
+    // 日志配置
+    'logger' => [
+        'channels' => [
+            'imi' => [
+                'handlers' => [
+                    [
+                        'class'     => \Imi\Log\Handler\ConsoleHandler::class,
+                        'formatter' => [
+                            'class'     => \Imi\Log\Formatter\ConsoleLineFormatter::class,
+                            'construct' => [
+                                'format'                     => null,
+                                'dateFormat'                 => 'Y-m-d H:i:s',
+                                'allowInlineLineBreaks'      => true,
+                                'ignoreEmptyContextAndExtra' => true,
+                            ],
+                        ],
+                    ],
+                    [
+                        'class'     => \Monolog\Handler\RotatingFileHandler::class,
+                        'construct' => [
+                            'filename' => dirname(__DIR__) . '/.runtime/logs/log.log',
+                        ],
+                        'formatter' => [
+                            'class'     => \Monolog\Formatter\LineFormatter::class,
+                            'construct' => [
+                                'dateFormat'                 => 'Y-m-d H:i:s',
+                                'allowInlineLineBreaks'      => true,
+                                'ignoreEmptyContextAndExtra' => true,
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ],
