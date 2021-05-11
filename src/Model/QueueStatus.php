@@ -5,39 +5,38 @@ declare(strict_types=1);
 namespace Imi\Queue\Model;
 
 use Imi\Util\Traits\TDataToProperty;
-use JsonSerializable;
 
 /**
  * 队列状态
  */
-class QueueStatus implements JsonSerializable
+class QueueStatus implements \JsonSerializable
 {
     use TDataToProperty;
 
     /**
      * 准备就绪数量.
      */
-    protected int $ready;
+    protected int $ready = 0;
 
     /**
      * 工作中数量.
      */
-    protected int $working;
+    protected int $working = 0;
 
     /**
      * 失败数量.
      */
-    protected int $fail;
+    protected int $fail = 0;
 
     /**
      * 超时数量.
      */
-    protected int $timeout;
+    protected int $timeout = 0;
 
     /**
      * 延时数量.
      */
-    protected int $delay;
+    protected int $delay = 0;
 
     /**
      * Get 准备就绪数量.

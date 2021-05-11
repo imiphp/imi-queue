@@ -1,14 +1,12 @@
 {
     "name": "imiphp/imi-queue",
     "type": "library",
-    "license": "MIT",
+    "license": "MulanPSL-2.0",
     "description": "imi 框架的队列组件，使用 Redis 作为持久化",
-    "require": {
-        "php": ">=7.4 <8.2"
-    },
+    "require": {},
     "require-dev": {
         "yurunsoft/ide-helper": "~1.0",
-        "swoole/ide-helper": "^4.7",
+        "swoole/ide-helper": "~4.8",
         "phpunit/phpunit": "~9.6"
     },
     "autoload": {

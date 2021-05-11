@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-use function Imi\env;
 use Imi\Util\Imi;
+
+use function Imi\env;
 
 return [
     // 项目根命名空间
-    'namespace'    => 'QueueApp',
+    'namespace'       => 'QueueApp',
 
     // 配置文件
-    'configs'    => [
+    'configs'         => [
         'beans'        => __DIR__ . '/beans.php',
     ],
 
@@ -21,20 +22,21 @@ return [
     // ],
 
     // 组件命名空间
-    'components'    => [
+    'components'      => [
         'Queue'     => 'Imi\Queue',
         'Swoole'    => 'Imi\Swoole',
         'Workerman' => 'Imi\Workerman',
     ],
 
     // 主服务器配置
-    'mainServer'    => [
+    'mainServer'      => [
         'namespace'     => 'QueueApp\HttpServer',
         'type'          => \Imi\Swoole\Server\Type::HTTP,
         'host'          => '127.0.0.1',
         'port'          => 8080,
         'configs'       => [
             'worker_num'        => 1,
+            'max_wait_time'     => 30,
         ],
     ],
 
@@ -50,10 +52,16 @@ return [
         ],
     ],
 
+    'workerman'       => [
+        'worker' => [
+            'stopTimeout' => 30,
+        ],
+    ],
+
     // 连接池配置
-    'pools'    => Imi::checkAppType('swoole') ? [
+    'pools'           => Imi::checkAppType('swoole') ? [
         'redis'    => [
-            'pool' => [
+            'pool'     => [
                 // 协程池类名
                 'class'         => \Imi\Swoole\Redis\Pool\CoroutineRedisPool::class,
                 'config'        => [
@@ -71,53 +79,53 @@ return [
                     // 'heartbeatInterval' => null,
                     // 当获取资源时，是否检查状态
                     // 'checkStateWhenGetResource' => true,
-                    // 负载均衡-轮流
-                    // 'resourceConfigMode' => ResourceConfigMode::TURN,
+                    // 负载均衡-轮询
+                    // 'resourceConfigMode' => ResourceConfigMode::ROUND_ROBIN,
                     // 负载均衡-随机
                     // 'resourceConfigMode' => ResourceConfigMode::RANDOM,
                 ],
             ],
             // 数组资源配置
             'resource' => [
-                'host'    => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'    => 6379,
+                'host'         => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                'port'         => 6379,
                 // 是否自动序列化变量
                 'serialize'    => false,
                 // 密码
-                'password'    => null,
+                'password'     => null,
                 // 第几个库
-                'db'    => 0,
+                'db'           => 0,
             ],
             // uri资源配置，以分号;分隔多个，参数使用query参数格式，特殊字符需要转码
         ],
     ] : [],
 
     // 数据库配置
-    'db'    => [
+    'db'              => [
         // 数默认连接池名
         'defaultPool'    => 'maindb',
     ],
 
     // redis 配置
-    'redis' => [
+    'redis'           => [
         // 数默认连接池名
         'defaultPool'   => 'redis',
         'connections'   => [
             'redis' => [
-                'host'    => env('REDIS_SERVER_HOST', '127.0.0.1'),
-                'port'    => 6379,
+                'host'         => env('REDIS_SERVER_HOST', '127.0.0.1'),
+                'port'         => 6379,
                 // 是否自动序列化变量
                 'serialize'    => false,
                 // 密码
-                'password'    => null,
+                'password'     => null,
                 // 第几个库
-                'db'    => 0,
+                'db'           => 0,
             ],
         ],
     ],
 
     // 锁
-    'lock'  => [
+    'lock'            => [
         'list'  => [
             'redisConnectionContextLock' => [
                 'class'     => 'RedisLock',
@@ -128,7 +136,7 @@ return [
         ],
     ],
     // 日志配置
-    'logger' => [
+    'logger'          => [
         'channels' => [
             'imi' => [
                 'handlers' => [

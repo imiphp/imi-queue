@@ -20,7 +20,7 @@ class QueueService
     /**
      * 队列列表.
      */
-    protected array $list;
+    protected array $list = [];
 
     /**
      * 默认队列.
@@ -104,6 +104,6 @@ class QueueService
             return $queueInstances[$name];
         }
 
-        return $queueInstances[$name] = App::getBean($config->getDriver(), $name, $config->getConfig());
+        return $queueInstances[$name] = App::newInstance($config->getDriver(), $name, $config->getConfig());
     }
 }
