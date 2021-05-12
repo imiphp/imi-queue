@@ -1,11 +1,12 @@
 <?php
+
 namespace Imi\Queue\Enum;
 
-use Imi\Enum\BaseEnum;
 use Imi\Enum\Annotation\EnumItem;
+use Imi\Enum\BaseEnum;
 
 /**
- * 队列类型
+ * 队列类型.
  */
 abstract class QueueType extends BaseEnum
 {
@@ -28,10 +29,9 @@ abstract class QueueType extends BaseEnum
      * @EnumItem(text="超时", type="list")
      */
     const TIMEOUT = 4;
- 
+
     /**
      * @EnumItem(text="延时", type="zset")
      */
     const DELAY = 5;
-
 }

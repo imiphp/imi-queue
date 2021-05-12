@@ -1,11 +1,13 @@
 <?php
+
 namespace Imi\Queue\Facade;
 
-use Imi\Facade\BaseFacade;
 use Imi\Facade\Annotation\Facade;
+use Imi\Facade\BaseFacade;
 
 /**
  * @Facade(class="imiQueue")
+ *
  * @method static array getList()
  * @method static self setList(array $list)
  * @method static \Imi\Queue\Model\QueueConfig getQueueConfig(?string $name = NULL)
@@ -13,5 +15,4 @@ use Imi\Facade\Annotation\Facade;
  */
 abstract class Queue extends BaseFacade
 {
-
 }
