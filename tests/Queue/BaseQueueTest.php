@@ -1,32 +1,33 @@
 <?php
+
 namespace Imi\Queue\Test\Queue;
 
-use Swoole\Coroutine;
-use Imi\Queue\Model\Message;
-use Swoole\Coroutine\Channel;
 use Imi\Queue\Driver\IQueueDriver;
+use Imi\Queue\Model\Message;
+use Swoole\Coroutine;
+use Swoole\Coroutine\Channel;
 
 abstract class BaseQueueTest extends BaseTest
 {
-    protected abstract function getDriver(): IQueueDriver;
+    abstract protected function getDriver(): IQueueDriver;
 
-    public function testClear()
+    public function testClear(): void
     {
         $this->getDriver()->clear();
         $this->assertTrue(true);
     }
 
-    public function testPush()
+    public function testPush(): void
     {
         $driver = $this->getDriver();
 
-        $message = new Message;
+        $message = new Message();
         $message->setMessage('a');
         $messageId = $driver->push($message);
         $this->assertNotEmpty($messageId);
     }
 
-    public function testPop()
+    public function testPop(): void
     {
         $message = $this->getDriver()->pop();
         $this->assertInstanceOf(\Imi\Queue\Contract\IMessage::class, $message);
@@ -34,14 +35,14 @@ abstract class BaseQueueTest extends BaseTest
         $this->assertEquals('a', $message->getMessage());
     }
 
-    public function testPopTimeout()
+    public function testPopTimeout(): void
     {
         $message = $totalTime = null;
         $channel = new Channel(1);
-        go(function() use(&$message, &$totalTime, $channel){
-            go(function() use($channel){
+        go(function () use (&$message, &$totalTime, $channel) {
+            go(function () use ($channel) {
                 Coroutine::sleep(1);
-                $message = new Message;
+                $message = new Message();
                 $message->setMessage('a');
                 $messageId = $this->getDriver()->push($message);
                 $this->assertNotEmpty($messageId);
@@ -52,46 +53,46 @@ abstract class BaseQueueTest extends BaseTest
             $totalTime = microtime(true) - $time;
             $channel->push(1);
         });
-        for($i = 0; $i < 2; ++$i)
+        for ($i = 0; $i < 2; ++$i)
         {
             $channel->pop(3);
         }
-        $this->assertEquals(1, (int)$totalTime);
+        $this->assertEquals(1, (int) $totalTime);
         $this->assertInstanceOf(\Imi\Queue\Contract\IMessage::class, $message);
         $this->assertNotEmpty($message->getMessageId());
         $this->assertEquals('a', $message->getMessage());
     }
 
-    public function testPushDelay()
+    public function testPushDelay(): void
     {
         $driver = $this->getDriver();
         $driver->clear();
-        $message = new Message;
+        $message = new Message();
         $message->setMessage('b');
         $messageId = $driver->push($message, 3);
         $this->assertNotEmpty($messageId);
 
         $time = microtime(true);
-        for($i = 0; $i < 3; ++$i)
+        for ($i = 0; $i < 3; ++$i)
         {
             sleep(1);
             $message = $driver->pop();
-            if(null !== $message)
+            if (null !== $message)
             {
                 break;
             }
         }
-        $this->assertEquals(3, (int)(microtime(true) - $time));
+        $this->assertEquals(3, (int) (microtime(true) - $time));
         $this->assertInstanceOf(\Imi\Queue\Contract\IMessage::class, $message);
         $this->assertNotEmpty($message->getMessageId());
         $this->assertEquals('b', $message->getMessage());
     }
 
-    public function testDelete()
+    public function testDelete(): void
     {
         $driver = $this->getDriver();
 
-        $message = new Message;
+        $message = new Message();
         $message->setMessage('a');
         $messageId = $driver->push($message);
         $this->assertNotEmpty($messageId);
@@ -101,7 +102,7 @@ abstract class BaseQueueTest extends BaseTest
         $this->assertTrue($driver->delete($message));
     }
 
-    public function testClearAndStatus()
+    public function testClearAndStatus(): void
     {
         $driver = $this->getDriver();
         $driver->clear();
@@ -112,7 +113,7 @@ abstract class BaseQueueTest extends BaseTest
         $this->assertEquals(0, $status->getTimeout());
         $this->assertEquals(0, $status->getFail());
 
-        $message = new Message;
+        $message = new Message();
         $message->setMessage('a');
         $messageId = $driver->push($message);
         $this->assertNotEmpty($messageId);
@@ -124,15 +125,14 @@ abstract class BaseQueueTest extends BaseTest
         $status = $driver->status();
         $this->assertEquals(1, $status->getReady());
         $this->assertEquals(1, $status->getDelay());
-
     }
 
-    public function testRestoreFailMessages()
+    public function testRestoreFailMessages(): void
     {
         $driver = $this->getDriver();
         $driver->clear();
 
-        $message = new Message;
+        $message = new Message();
         $message->setMessage('a');
         $messageId = $driver->push($message);
         $this->assertNotEmpty($messageId);
@@ -143,7 +143,7 @@ abstract class BaseQueueTest extends BaseTest
         $driver->fail($message);
 
         $this->assertEquals(1, $driver->restoreFailMessages());
-        
+
         // requeue
         $message = $this->getDriver()->pop();
         $this->assertNotEmpty($message->getMessageId());
@@ -154,12 +154,12 @@ abstract class BaseQueueTest extends BaseTest
         $this->assertEquals(0, $driver->restoreFailMessages());
     }
 
-    public function testRestoreTimeoutMessages()
+    public function testRestoreTimeoutMessages(): void
     {
         $driver = $this->getDriver();
         $driver->clear();
 
-        $message = new Message;
+        $message = new Message();
         $message->setMessage('a');
         $message->setWorkingTimeout(1);
         $messageId = $driver->push($message);
@@ -175,5 +175,4 @@ abstract class BaseQueueTest extends BaseTest
 
         $this->assertEquals(1, $driver->restoreTimeoutMessages());
     }
-
 }

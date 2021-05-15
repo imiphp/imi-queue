@@ -4,44 +4,44 @@ use Imi\Server\Type;
 
 return [
     // 项目根命名空间
-    'namespace'    =>    'ImiApp',
+    'namespace'    => 'QueueApp',
 
     // 配置文件
-    'configs'    =>    [
-        'beans'        =>    __DIR__ . '/beans.php',
+    'configs'    => [
+        'beans'        => __DIR__ . '/beans.php',
     ],
 
     // 扫描目录
-    'beanScan'    =>    [
-        'ImiApp\Consumer',
-        'ImiApp\Listener',
+    'beanScan'    => [
+        'QueueApp\Consumer',
+        'QueueApp\Listener',
     ],
 
     // 组件命名空间
-    'components'    =>  [
-        'Queue'  =>  'Imi\Queue',
+    'components'    => [
+        'Queue'  => 'Imi\Queue',
     ],
 
     // 主服务器配置
-    'mainServer'    =>    [
-        'namespace'     =>    'ImiApp\HttpServer',
-        'type'          =>    Type::HTTP,
-        'host'          =>    '127.0.0.1',
-        'port'          =>    8080,
-        'configs'       =>    [
-            'worker_num'        =>  1,
+    'mainServer'    => [
+        'namespace'     => 'QueueApp\HttpServer',
+        'type'          => Type::HTTP,
+        'host'          => '127.0.0.1',
+        'port'          => 8080,
+        'configs'       => [
+            'worker_num'        => 1,
         ],
     ],
 
     // 连接池配置
-    'pools'    =>    [
-        'redis'    =>    [
+    'pools'    => [
+        'redis'    => [
             'pool' => [
                 // 同步池类名
-                'syncClass'     =>    \Imi\Redis\SyncRedisPool::class,
+                'syncClass'     => \Imi\Redis\SyncRedisPool::class,
                 // 协程池类名
-                'asyncClass'    =>    \Imi\Redis\CoroutineRedisPool::class,
-                'config' => [
+                'asyncClass'    => \Imi\Redis\CoroutineRedisPool::class,
+                'config'        => [
                     // 池子中最多资源数
                     'maxResources' => 10,
                     // 池子中最少资源数
@@ -64,41 +64,40 @@ return [
             ],
             // 数组资源配置
             'resource' => [
-                'host'    =>    '127.0.0.1',
-                'port'    =>    6379,
+                'host'    => imiGetEnv('REDIS_SERVER_HOST', '127.0.0.1'),
+                'port'    => 6379,
                 // 是否自动序列化变量
-                'serialize'    =>    false,
+                'serialize'    => false,
                 // 密码
-                'password'    =>    null,
+                'password'    => null,
                 // 第几个库
-                'db'    =>    0,
+                'db'    => 0,
             ],
             // uri资源配置，以分号;分隔多个，参数使用query参数格式，特殊字符需要转码
         ],
     ],
 
     // 数据库配置
-    'db'    =>    [
+    'db'    => [
         // 数默认连接池名
-        'defaultPool'    =>    'maindb',
+        'defaultPool'    => 'maindb',
     ],
 
     // redis 配置
-    'redis' =>  [
+    'redis' => [
         // 数默认连接池名
-        'defaultPool'   =>  'redis',
+        'defaultPool'   => 'redis',
     ],
 
     // 锁
-    'lock'  =>[
-        'list'  =>  [
-            'redisConnectContextLock' =>  [
-                'class' =>  'RedisLock',
-                'options'   =>  [
-                    'poolName'  =>  'redis',
+    'lock'  => [
+        'list'  => [
+            'redisConnectContextLock' => [
+                'class'     => 'RedisLock',
+                'options'   => [
+                    'poolName'  => 'redis',
                 ],
             ],
         ],
     ],
-
 ];

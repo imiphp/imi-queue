@@ -3,33 +3,26 @@
     "type": "library",
     "license": "MIT",
     "description": "imi 框架的队列组件，使用 Redis 作为持久化",
-    "require": {
-        
-    },
+    "require": {},
     "require-dev": {
-        "yurunsoft/imi": "dev-dev",
-        "phpunit/phpunit": ">=7",
-        "yurunsoft/ide-helper": "~1.0"
+        "yurunsoft/ide-helper": "~1.0",
+        "swoole/ide-helper": "^4.6"
     },
     "autoload": {
-        "psr-4" : {
-            "Imi\\Queue\\" : "src/"
+        "psr-4": {
+            "Imi\\Queue\\": "src/"
         }
     },
     "autoload-dev": {
-        "psr-4" : {
-            "ImiApp\\" : "example/",
-            "Imi\\Queue\\Test\\" : "tests/"
+        "psr-4": {
+            "QueueApp\\": "example/",
+            "Imi\\Queue\\Test\\": "tests/"
         }
     },
-    "scripts": {
-        "test": "./vendor/bin/phpunit -c ./tests/phpunit.xml",
-        "install-test": "php --ri swoole && composer install composer test"
-    },
+    "scripts": {},
     "extra": {
         "ide-helper": {
             "list": [
-                "swoole",
                 "redis"
             ]
         }
