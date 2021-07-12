@@ -1,28 +1,30 @@
 <?php
+
 namespace Imi\Queue\Driver;
 
-use Imi\Redis\RedisManager;
-use Imi\Queue\Model\Message;
 use Imi\Bean\Annotation\Bean;
-use Imi\Queue\Enum\QueueType;
 use Imi\Queue\Contract\IMessage;
-use Imi\Queue\Model\QueueStatus;
-use Imi\Util\Traits\TDataToProperty;
+use Imi\Queue\Enum\QueueType;
 use Imi\Queue\Exception\QueueException;
+use Imi\Queue\Model\Message;
+use Imi\Queue\Model\QueueStatus;
+use Imi\Redis\RedisManager;
+use Imi\Util\Traits\TDataToProperty;
 
 /**
- * Redis 队列驱动
- * 
+ * Redis 队列驱动.
+ *
  * @Bean("RedisQueueDriver")
  */
 class RedisQueueDriver implements IQueueDriver
 {
     use TDataToProperty{
-		__construct as private traitConstruct;
+        __construct as private traitConstruct;
     }
 
     /**
-     * Redis 连接池名称
+     * Redis 连接池名称.
+     *
      * @var string
      */
     protected $poolName;
@@ -35,15 +37,15 @@ class RedisQueueDriver implements IQueueDriver
     protected $prefix = 'imi:';
 
     /**
-     * 队列名称
+     * 队列名称.
      *
      * @var string
      */
     protected $name;
 
     /**
-     * 循环尝试 pop 的时间间隔，单位：秒
-     * 
+     * 循环尝试 pop 的时间间隔，单位：秒.
+     *
      * @var float
      */
     protected $timespan = 0.03;
@@ -55,7 +57,7 @@ class RedisQueueDriver implements IQueueDriver
     }
 
     /**
-     * 获取队列名称
+     * 获取队列名称.
      *
      * @return string
      */
@@ -65,17 +67,18 @@ class RedisQueueDriver implements IQueueDriver
     }
 
     /**
-     * 推送消息到队列，返回消息ID
+     * 推送消息到队列，返回消息ID.
      *
      * @param \Imi\Queue\Contract\IMessage $message
-     * @param float $delay
-     * @param array $options
+     * @param float                        $delay
+     * @param array                        $options
+     *
      * @return string
      */
     public function push(IMessage $message, float $delay = 0, array $options = []): string
     {
         $redis = RedisManager::getInstance($this->poolName);
-        if($delay > 0)
+        if ($delay > 0)
         {
             $args = [
                 $this->getQueueKey(QueueType::DELAY),
@@ -84,7 +87,7 @@ class RedisQueueDriver implements IQueueDriver
                 microtime(true) + $delay,
                 date('Ymd'),
             ];
-            foreach($message->toArray() as $k => $v)
+            foreach ($message->toArray() as $k => $v)
             {
                 $args[] = $k;
                 $args[] = $v;
@@ -123,7 +126,7 @@ LUA
                 $this->getMessageIdKey(),
                 date('Ymd'),
             ];
-            foreach($message->toArray() as $k => $v)
+            foreach ($message->toArray() as $k => $v)
             {
                 $args[] = $k;
                 $args[] = $v;
@@ -153,9 +156,9 @@ return messageId
 LUA
             , $args, 3);
         }
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue push failed');
             }
@@ -164,27 +167,30 @@ LUA
                 throw new QueueException('Queue push failed, ' . $error);
             }
         }
+
         return $result;
     }
 
     /**
-     * 从队列弹出一个消息
-     * 
+     * 从队列弹出一个消息.
+     *
      * @param float $timeout 超时时间，单位：秒。值是-1时立即返回结果
+     *
      * @return \Imi\Queue\Contract\IMessage|null
      */
     public function pop(float $timeout = -1): ?IMessage
     {
         $time = $useTime = 0;
-        do {
-            if($timeout > 0)
+        do
+        {
+            if ($timeout > 0)
             {
-                if($time)
+                if ($time)
                 {
                     $leftTime = $timeout - $useTime;
-                    if($leftTime > $this->timespan)
+                    if ($leftTime > $this->timespan)
                     {
-                        usleep($this->timespan * 1000000);
+                        usleep((int) ($this->timespan * 1000000));
                     }
                 }
                 else
@@ -221,21 +227,22 @@ LUA
                 $this->getMessageKeyPrefix(),
                 microtime(true),
             ], 3);
-            if($result > 0)
+            if ($result > 0)
             {
                 $data = [];
-                $length = count($result);
-                for($i = 0; $i < $length; $i += 2)
+                $length = \count($result);
+                for ($i = 0; $i < $length; $i += 2)
                 {
                     $data[$result[$i]] = $result[$i + 1];
                 }
-                $message = new Message;
+                $message = new Message();
                 $message->loadFromArray($data);
+
                 return $message;
             }
-            if(false === $result)
+            if (false === $result)
             {
-                if('' == ($error = $redis->getLastError()))
+                if ('' == ($error = $redis->getLastError()))
                 {
                     throw new QueueException('Queue pop failed');
                 }
@@ -244,18 +251,20 @@ LUA
                     throw new QueueException('Queue pop failed, ' . $error);
                 }
             }
-            if($timeout < 0)
+            if ($timeout < 0)
             {
                 return null;
             }
-        } while(($useTime = (microtime(true) - $time)) < $timeout);
+        } while (($useTime = (microtime(true) - $time)) < $timeout);
+
         return null;
     }
 
     /**
-     * 删除一个消息
+     * 删除一个消息.
      *
      * @param \Imi\Queue\Contract\IMessage $message
+     *
      * @return bool
      */
     public function delete(IMessage $message): bool
@@ -280,9 +289,9 @@ LUA
             $message->getMessageId(),
         ], 3);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue delete failed');
             }
@@ -291,27 +300,29 @@ LUA
                 throw new QueueException('Queue delete failed, ' . $error);
             }
         }
+
         return $result;
     }
 
     /**
-     * 清空队列
+     * 清空队列.
      *
      * @param int|int[]|null $queueType 清空哪个队列，默认为全部
+     *
      * @return void
      */
     public function clear($queueType = null)
     {
-        if(null === $queueType)
+        if (null === $queueType)
         {
             $queueType = QueueType::getValues();
         }
         else
         {
-            $queueType = (array)$queueType;
+            $queueType = (array) $queueType;
         }
         $keys = [];
-        foreach($queueType as $tmpQueueType)
+        foreach ($queueType as $tmpQueueType)
         {
             $keys[] = $this->getQueueKey($tmpQueueType);
         }
@@ -322,7 +333,8 @@ LUA
      * 将消息标记为成功
      *
      * @param \Imi\Queue\Contract\IMessage $message
-     * @return void
+     *
+     * @return bool
      */
     public function success(IMessage $message)
     {
@@ -343,9 +355,9 @@ LUA
             $message->getMessageId(),
         ], 3);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue success failed');
             }
@@ -354,20 +366,22 @@ LUA
                 throw new QueueException('Queue success failed, ' . $error);
             }
         }
+
         return $result;
     }
 
     /**
-     * 将消息标记为失败
+     * 将消息标记为失败.
      *
      * @param \Imi\Queue\Contract\IMessage $message
-     * @param bool $requeue
-     * @return void
+     * @param bool                         $requeue
+     *
+     * @return bool
      */
     public function fail(IMessage $message, bool $requeue = false)
     {
         $redis = RedisManager::getInstance($this->poolName);
-        if($requeue)
+        if ($requeue)
         {
             $operation = <<<LUA
 -- 加入队列
@@ -393,9 +407,9 @@ LUA
             $message->getMessageId(),
         ], 2);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue success failed');
             }
@@ -404,6 +418,7 @@ LUA
                 throw new QueueException('Queue success failed, ' . $error);
             }
         }
+
         return $result;
     }
 
@@ -416,10 +431,11 @@ LUA
     {
         $status = [];
         $redis = RedisManager::getInstance($this->poolName);
-        foreach(QueueType::getValues() as $value)
+        foreach (QueueType::getValues() as $value)
         {
             $data = QueueType::getData($value);
-            switch($data->type)
+            // @phpstan-ignore-next-line
+            switch ($data->type)
             {
                 case 'list':
                     $count = $redis->lLen($this->getQueueKey($value));
@@ -428,19 +444,21 @@ LUA
                     $count = $redis->zCard($this->getQueueKey($value));
                     break;
                 default:
+                    // @phpstan-ignore-next-line
                     throw new QueueException('Invalid type ' . $data->type);
             }
             $status[strtolower(QueueType::getName($value))] = $count;
         }
+
         return new QueueStatus($status);
     }
 
     /**
-     * 将失败消息恢复到队列
-     * 
+     * 将失败消息恢复到队列.
+     *
      * 返回恢复数量
      *
-     * @return integer
+     * @return int
      */
     public function restoreFailMessages(): int
     {
@@ -458,9 +476,9 @@ LUA
             $this->getQueueKey(QueueType::FAIL),
         ], 2);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue restoreFailMessages failed');
             }
@@ -469,15 +487,16 @@ LUA
                 throw new QueueException('Queue restoreFailMessages failed, ' . $error);
             }
         }
+
         return $result;
     }
 
     /**
-     * 将超时消息恢复到队列
-     * 
+     * 将超时消息恢复到队列.
+     *
      * 返回恢复数量
      *
-     * @return integer
+     * @return int
      */
     public function restoreTimeoutMessages(): int
     {
@@ -495,9 +514,9 @@ LUA
             $this->getQueueKey(QueueType::TIMEOUT),
         ], 2);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue restoreTimeoutMessages failed');
             }
@@ -506,16 +525,18 @@ LUA
                 throw new QueueException('Queue restoreTimeoutMessages failed, ' . $error);
             }
         }
+
         return $result;
     }
 
     /**
-     * 将达到指定时间的消息加入到队列
-     * 
+     * 将达到指定时间的消息加入到队列.
+     *
      * 返回消息数量
      *
      * @param int $count
-     * @return integer
+     *
+     * @return int
      */
     protected function parseDelayMessages(int $count = 100): int
     {
@@ -540,9 +561,9 @@ LUA
             $count,
         ], 2);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue parseDelayMessages failed');
             }
@@ -551,16 +572,18 @@ LUA
                 throw new QueueException('Queue parseDelayMessages failed, ' . $error);
             }
         }
+
         return $result;
     }
 
     /**
-     * 将处理超时的消息加入到超时队列
-     * 
+     * 将处理超时的消息加入到超时队列.
+     *
      * 返回消息数量
      *
-     * @param integer $count
-     * @return void
+     * @param int $count
+     *
+     * @return int
      */
     protected function parseTimeoutMessages(int $count = 100)
     {
@@ -585,9 +608,9 @@ LUA
             $count,
         ], 2);
 
-        if(false === $result)
+        if (false === $result)
         {
-            if('' == ($error = $redis->getLastError()))
+            if ('' == ($error = $redis->getLastError()))
             {
                 throw new QueueException('Queue parseTimeoutMessages failed');
             }
@@ -596,6 +619,7 @@ LUA
                 throw new QueueException('Queue parseTimeoutMessages failed, ' . $error);
             }
         }
+
         return $result;
     }
 
@@ -610,7 +634,7 @@ LUA
     }
 
     /**
-     * 获取消息 ID 的键
+     * 获取消息 ID 的键.
      *
      * @return string
      */
@@ -620,14 +644,14 @@ LUA
     }
 
     /**
-     * 获取队列的键
+     * 获取队列的键.
      *
-     * @param integer $queueType
+     * @param int $queueType
+     *
      * @return string
      */
     public function getQueueKey(int $queueType): string
     {
         return $this->prefix . $this->name . ':' . strtolower(QueueType::getName($queueType));
     }
-
 }

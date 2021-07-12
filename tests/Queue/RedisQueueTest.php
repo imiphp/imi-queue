@@ -1,4 +1,5 @@
 <?php
+
 namespace Imi\Queue\Test\Queue;
 
 use Imi\App;

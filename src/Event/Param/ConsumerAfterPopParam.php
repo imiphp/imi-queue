@@ -1,10 +1,11 @@
 <?php
+
 namespace Imi\Queue\Event\Param;
 
 use Imi\Event\EventParam;
 
 /**
- * 消费者弹出消息后置事件参数
+ * 消费者弹出消息后置事件参数.
  */
 class ConsumerAfterPopParam extends EventParam
 {
@@ -16,10 +17,9 @@ class ConsumerAfterPopParam extends EventParam
     public $queue;
 
     /**
-     * 消息
+     * 消息.
      *
      * @var \Imi\Queue\Contract\IMessage
      */
     public $message;
-
 }

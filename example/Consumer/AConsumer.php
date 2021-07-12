@@ -1,8 +1,9 @@
 <?php
-namespace ImiApp\Consumer;
 
-use Imi\Log\Log;
+namespace QueueApp\Consumer;
+
 use Imi\Bean\Annotation\Bean;
+use Imi\Log\Log;
 use Imi\Queue\Contract\IMessage;
 use Imi\Queue\Driver\IQueueDriver;
 use Imi\Queue\Service\BaseQueueConsumer;
@@ -13,10 +14,11 @@ use Imi\Queue\Service\BaseQueueConsumer;
 class AConsumer extends BaseQueueConsumer
 {
     /**
-     * 处理消费
-     * 
-     * @param \Imi\Queue\Contract\IMessage $message
+     * 处理消费.
+     *
+     * @param \Imi\Queue\Contract\IMessage   $message
      * @param \Imi\Queue\Driver\IQueueDriver $queue
+     *
      * @return void
      */
     protected function consume(IMessage $message, IQueueDriver $queue)
@@ -24,5 +26,4 @@ class AConsumer extends BaseQueueConsumer
         Log::info(sprintf('[%s]%s:%s', $queue->getName(), $message->getMessageId(), $message->getMessage()));
         $queue->success($message);
     }
-
 }
