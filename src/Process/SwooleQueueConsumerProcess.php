@@ -11,8 +11,9 @@ use Imi\Log\Log;
 use Imi\Queue\Service\QueueService;
 use Imi\Swoole\Process\Annotation\Process;
 use Imi\Swoole\Process\BaseProcess;
+use Imi\Swoole\Util\Coroutine;
 use Imi\Swoole\Util\Imi;
-use Swoole\Coroutine;
+use Imi\Util\ImiPriority;
 use Swoole\Event;
 
 if (\Imi\Util\Imi::checkAppType('swoole'))
@@ -38,6 +39,10 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
 
         public function run(\Swoole\Process $process): void
         {
+            $running = true;
+            \Imi\Event\Event::on('IMI.PROCESS.END', static function () use (&$running) {
+                $running = false;
+            }, ImiPriority::IMI_MAX);
             $imiQueue = $this->imiQueue;
             $processGroups = [];
             foreach ($imiQueue->getList() as $name => $arrayConfig)
@@ -55,32 +60,30 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
                 }
                 $processGroups[$group]['configs'][] = $config;
             }
+            $processPools = [];
             foreach ($processGroups as $group => $options)
             {
-                $processPool = new \Imi\Swoole\Process\Pool($options['process']);
+                $processPools[] = $processPool = new \Imi\Swoole\Process\Pool($options['process']);
                 $configs = $options['configs'];
                 $processPool->on('WorkerStart', function (\Imi\Swoole\Process\Pool\WorkerEventParam $e) use ($group, $configs) {
-                    Coroutine::create(function () use ($group, $configs, $e) {
-                        $processName = 'QueueConsumer-' . $group;
-                        // 进程开始事件
-                        ImiEvent::trigger('IMI.PROCESS.BEGIN', [
-                            'name'      => $processName,
-                            'process'   => $e->getWorker(),
-                        ]);
-                        \Swoole\Runtime::enableCoroutine(true);
-                        Imi::setProcessName('process', [
-                            'processName'   => $processName,
-                        ]);
-                        /** @var \Imi\Queue\Model\QueueConfig[] $configs */
-                        foreach ($configs as $config)
-                        {
-                            Coroutine::create(function () use ($config) {
-                                /** @var \Imi\Queue\Service\BaseQueueConsumer $queueConsumer */
-                                $queueConsumer = $this->consumers[] = App::getBean($config->getConsumer(), $config->getName());
-                                $queueConsumer->start();
-                            });
-                        }
-                    });
+                    $processName = 'QueueConsumer-' . $group;
+                    // 进程开始事件
+                    ImiEvent::trigger('IMI.PROCESS.BEGIN', [
+                        'name'      => $processName,
+                        'process'   => $e->getWorker(),
+                    ]);
+                    Imi::setProcessName('process', [
+                        'processName'   => $processName,
+                    ]);
+                    /** @var \Imi\Queue\Model\QueueConfig[] $configs */
+                    foreach ($configs as $config)
+                    {
+                        Coroutine::create(function () use ($config) {
+                            /** @var \Imi\Queue\Service\BaseQueueConsumer $queueConsumer */
+                            $queueConsumer = $this->consumers[] = App::newInstance($config->getConsumer(), $config->getName());
+                            $queueConsumer->start();
+                        });
+                    }
                 });
                 // 工作进程退出事件-可选
                 $processPool->on('WorkerExit', function (\Imi\Swoole\Process\Pool\WorkerEventParam $e) use ($group) {
@@ -97,16 +100,31 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
                 });
                 $processPool->start();
             }
-            if (!isset($name))
+            if ($processPools)
             {
-                Log::warning('@app.beans.imiQueue.list is empty');
                 // @phpstan-ignore-next-line
-                while (true)
+                while ($running)
                 {
-                    sleep(86400);
+                    foreach ($processPools as $processPool)
+                    {
+                        $processPool->wait(false);
+                    }
+                    Event::dispatch();
+                    usleep(10000);
                 }
             }
-            Event::wait();
+            else
+            {
+                Log::warning('@app.beans.imiQueue.list is empty');
+                Coroutine::create(static function () use (&$running) {
+                    // @phpstan-ignore-next-line
+                    while ($running)
+                    {
+                        sleep(1);
+                    }
+                });
+                Event::wait();
+            }
         }
     }
 }
