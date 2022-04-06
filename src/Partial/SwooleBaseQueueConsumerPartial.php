@@ -11,6 +11,7 @@ use Imi\Queue\Event\Param\ConsumerAfterConsumeParam;
 use Imi\Queue\Event\Param\ConsumerAfterPopParam;
 use Imi\Queue\Event\Param\ConsumerBeforeConsumeParam;
 use Imi\Queue\Event\Param\ConsumerBeforePopParam;
+use Imi\Queue\Model\QueueConfig;
 use Swoole\Coroutine;
 use Yurun\Swoole\CoPool\CoPool;
 use Yurun\Swoole\CoPool\Interfaces\ICoTask;
@@ -43,44 +44,17 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
                 $co = $config->getCo();
             }
             $task = function () use ($config) {
-                $queue = $this->imiQueue->getQueue($this->name);
-                do
+                while ($this->working)
                 {
                     try
                     {
-                        Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_POP', [
-                            'queue' => $queue,
-                        ], $this, ConsumerBeforePopParam::class);
-                        $message = $queue->pop();
-                        Event::trigger('IMI.QUEUE.CONSUMER.AFTER_POP', [
-                            'queue'     => $queue,
-                            'message'   => $message,
-                        ], $this, ConsumerAfterPopParam::class);
-                        if (null === $message)
-                        {
-                            Coroutine::sleep($config->getTimespan());
-                        }
-                        else
-                        {
-                            goWait(function () use ($queue, $message) {
-                                Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_CONSUME', [
-                                    'queue'     => $queue,
-                                    'message'   => $message,
-                                ], $this, ConsumerBeforeConsumeParam::class);
-                                $this->consume($message, $queue);
-                                Event::trigger('IMI.QUEUE.CONSUMER.AFTER_CONSUME', [
-                                    'queue'     => $queue,
-                                    'message'   => $message,
-                                ], $this, ConsumerAfterConsumeParam::class);
-                            });
-                        }
+                        goWait(fn () => $this->task($config));
                     }
                     catch (\Throwable $th)
                     {
                         App::getBean('ErrorLog')->onException($th);
                     }
                 }
-                while ($this->working);
             };
             if ($co > 0)
             {
@@ -105,7 +79,7 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
             }
             else
             {
-                ($task)();
+                $task();
             }
         }
 
@@ -119,6 +93,41 @@ if (\Imi\Util\Imi::checkAppType('swoole'))
             {
                 $this->coPool->stop();
             }
+        }
+
+        protected function task(QueueConfig $config): void
+        {
+            $queue = $this->imiQueue->getQueue($this->name);
+            do
+            {
+                Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_POP', [
+                    'queue' => $queue,
+                ], $this, ConsumerBeforePopParam::class);
+                $message = $queue->pop();
+                Event::trigger('IMI.QUEUE.CONSUMER.AFTER_POP', [
+                    'queue'     => $queue,
+                    'message'   => $message,
+                ], $this, ConsumerAfterPopParam::class);
+                if (null === $message)
+                {
+                    Coroutine::sleep($config->getTimespan());
+                }
+                else
+                {
+                    goWait(function () use ($queue, $message) {
+                        Event::trigger('IMI.QUEUE.CONSUMER.BEFORE_CONSUME', [
+                            'queue'     => $queue,
+                            'message'   => $message,
+                        ], $this, ConsumerBeforeConsumeParam::class);
+                        $this->consume($message, $queue);
+                        Event::trigger('IMI.QUEUE.CONSUMER.AFTER_CONSUME', [
+                            'queue'     => $queue,
+                            'message'   => $message,
+                        ], $this, ConsumerAfterConsumeParam::class);
+                    });
+                }
+            }
+            while ($this->working);
         }
     }
 }
